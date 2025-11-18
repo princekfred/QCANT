@@ -17,7 +17,7 @@ import pyscf
 hf_energies = []
 casci_energies = []
 
-def aps_adapt( adapt_it):
+def aps_adapt(adapt_it):
     basis = bse.get_basis('sto-6g', elements=['H'], fmt='nwchem')
 
     # Define bond distance range for potential energy surface
@@ -198,7 +198,4 @@ def aps_adapt( adapt_it):
     print("energies:", energies[-1])
     return params, ash_excitation, energies
 
-params, ash_excitation,energies  = aps_adapt( adapt_it=5)
-print('params are', params)
-print('excitations are', ash_excitation)
-print('Energies are', energies)
+
