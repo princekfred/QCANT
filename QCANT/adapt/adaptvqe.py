@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Sequence
 
 
-def aps_adapt(
+def adapt_vqe(
     symbols: Sequence[str],
     geometry,
     *,
@@ -88,7 +88,7 @@ def aps_adapt(
         warnings.filterwarnings("ignore")
     except ImportError as exc:  # pragma: no cover
         raise ImportError(
-            "aps_adapt requires optional dependencies. Install at least: "
+            "adapt_vqe requires optional dependencies. Install at least: "
             "`pip install numpy scipy pennylane pyscf` "
             "(and a PennyLane device backend, e.g. `pip install pennylane-lightning`)."
         ) from exc

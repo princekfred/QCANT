@@ -1,7 +1,7 @@
 ADAPT-VQE
 =========
 
-QCANT provides an ADAPT-style VQE routine exposed as :func:`QCANT.aps_adapt`.
+QCANT provides an ADAPT-style VQE routine exposed as :func:`QCANT.adapt_vqe`.
 
 What it does
 ------------
@@ -15,8 +15,13 @@ The implementation in QCANT is an experimental/script-style implementation of an
 Dependencies
 ------------
 This function requires optional, heavy scientific dependencies. QCANT is designed so that
-``import QCANT`` works without them, but calling :func:`QCANT.aps_adapt` will raise
+``import QCANT`` works without them, but calling :func:`QCANT.adapt_vqe` will raise
 :class:`ImportError` unless they are installed.
+
+.. note::
+
+   The entry point is named ``adapt_vqe`` (instead of just ``adapt``) to avoid
+   shadowing the :mod:`QCANT.adapt` subpackage.
 
 Minimum expected dependencies:
 
@@ -50,7 +55,7 @@ Basic usage
       ]
    )
 
-   params, excitations, energies = QCANT.aps_adapt(
+   params, excitations, energies = QCANT.adapt_vqe(
       symbols=symbols,
       geometry=geometry,
       adapt_it=5,

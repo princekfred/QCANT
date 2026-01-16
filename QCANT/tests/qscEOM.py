@@ -3,7 +3,7 @@ import numpy as np
 #import excitations
 from excitations import inite
 
-def aps_qscEOM(symbols, geometry, active_electrons, active_orbitals, charge,params,ash_excitation, shots=0):
+def qscEOM(symbols, geometry, active_electrons, active_orbitals, charge,params,ash_excitation, shots=0):
     eig = []
     H, qubits = qml.qchem.molecular_hamiltonian(
         symbols, geometry, basis="sto-3g", method='pyscf',

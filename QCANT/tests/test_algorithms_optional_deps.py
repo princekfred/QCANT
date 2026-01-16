@@ -12,12 +12,12 @@ import pytest
 import QCANT
 
 
-def test_aps_adapt_geometry_length_mismatch_raises_value_error():
+def test_adapt_vqe_geometry_length_mismatch_raises_value_error():
     symbols = ["H", "H"]
     geometry = [[0.0, 0.0, 0.0]]
 
     with pytest.raises(ValueError, match=r"geometry must have the same length as symbols"):
-        QCANT.aps_adapt(
+        QCANT.adapt_vqe(
             symbols=symbols,
             geometry=geometry,
             adapt_it=1,
@@ -26,12 +26,12 @@ def test_aps_adapt_geometry_length_mismatch_raises_value_error():
         )
 
 
-def test_aps_adapt_missing_optional_deps_raises_import_error():
+def test_adapt_vqe_missing_optional_deps_raises_import_error():
     symbols = ["H", "H"]
     geometry = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.74]]
 
     with pytest.raises(ImportError) as excinfo:
-        QCANT.aps_adapt(
+        QCANT.adapt_vqe(
             symbols=symbols,
             geometry=geometry,
             adapt_it=1,
@@ -44,12 +44,12 @@ def test_aps_adapt_missing_optional_deps_raises_import_error():
     assert "pennylane" in msg or "pyscf" in msg
 
 
-def test_aps_qsceom_missing_optional_deps_raises_import_error():
+def test_qsceom_missing_optional_deps_raises_import_error():
     symbols = ["H", "H"]
     geometry = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.74]]
 
     with pytest.raises(ImportError) as excinfo:
-        QCANT.aps_qscEOM(
+        QCANT.qscEOM(
             symbols=symbols,
             geometry=geometry,
             active_electrons=2,

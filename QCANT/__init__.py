@@ -10,13 +10,13 @@ Public API
 """
 
 from .QCANT import canvas
-from .adapt import aps_adapt
-from .qsceom import aps_qscEOM
+from .adapt import adapt_vqe
+from .qsceom import qscEOM
 from ._version import __version__
 
 __all__ = [
-	"aps_adapt",
-	"aps_qscEOM",
+	"adapt_vqe",
+	"qscEOM",
 	"canvas",
 	"__version__",
 ]

@@ -1,7 +1,7 @@
 """Adaptive VQE (ADAPT-VQE) utilities."""
 
-from .adaptvqe import aps_adapt
+from .adaptvqe import adapt_vqe
 
 __all__ = [
-    "aps_adapt",
+    "adapt_vqe",
 ]

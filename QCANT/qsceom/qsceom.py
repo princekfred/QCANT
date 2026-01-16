@@ -17,7 +17,7 @@ from typing import Sequence
 from .excitations import inite
 
 
-def aps_qscEOM(
+def qscEOM(
     symbols: Sequence[str],
     geometry,
     active_electrons: int,
@@ -62,7 +62,7 @@ def aps_qscEOM(
         import pennylane as qml
     except ImportError as exc:  # pragma: no cover
         raise ImportError(
-            "aps_qscEOM requires optional dependencies. Install at least: "
+            "qscEOM requires optional dependencies. Install at least: "
             "`pip install numpy pennylane`."
         ) from exc
 

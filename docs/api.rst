@@ -8,8 +8,8 @@ This section is generated from the docstrings in the QCANT package.
 
    QCANT.__version__
 
-   QCANT.aps_adapt
+   QCANT.adapt_vqe
 
-   QCANT.aps_qscEOM
+   QCANT.qscEOM
 
    QCANT.canvas

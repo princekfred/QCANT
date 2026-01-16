@@ -1,7 +1,7 @@
 qscEOM
 ======
 
-QCANT provides a qscEOM routine exposed as :func:`QCANT.aps_qscEOM`.
+QCANT provides a qscEOM routine exposed as :func:`QCANT.qscEOM`.
 
 What it does
 ------------
@@ -15,7 +15,7 @@ At a high level, the routine:
 Dependencies
 ------------
 This function requires optional dependencies. QCANT is designed so that ``import QCANT`` works
-without them, but calling :func:`QCANT.aps_qscEOM` will raise :class:`ImportError` unless they are installed.
+without them, but calling :func:`QCANT.qscEOM` will raise :class:`ImportError` unless they are installed.
 
 Minimum expected dependencies:
 
@@ -54,7 +54,7 @@ Basic usage
    params = np.array([0.0])
    ash_excitation = [[0, 1]]
 
-   values = QCANT.aps_qscEOM(
+   values = QCANT.qscEOM(
        symbols=symbols,
        geometry=geometry,
        active_electrons=active_electrons,

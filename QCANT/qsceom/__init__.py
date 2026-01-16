@@ -1,9 +1,9 @@
 """Quantum subspace configuration interaction EOM (qscEOM) utilities."""
 
 from .excitations import inite
-from .qsceom import aps_qscEOM
+from .qsceom import qscEOM
 
 __all__ = [
-    "aps_qscEOM",
+    "qscEOM",
     "inite",
 ]

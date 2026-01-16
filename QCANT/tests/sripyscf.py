@@ -17,7 +17,7 @@ import pyscf
 hf_energies = []
 casci_energies = []
 
-def aps_adapt(adapt_it):
+def adapt_vqe(adapt_it):
     basis = bse.get_basis('sto-6g', elements=['H'], fmt='nwchem')
 
     # Define bond distance range for potential energy surface
