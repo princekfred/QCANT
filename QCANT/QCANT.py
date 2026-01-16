@@ -1,21 +1,28 @@
-"""Provide the primary functions."""
+"""Core public API for QCANT.
+
+At the moment QCANT is a small, template-derived package with a minimal API.
+The intent is for project-specific functionality to live in dedicated modules
+and be re-exported via :mod:`QCANT`.
+"""
+
+from __future__ import annotations
 
 
-def canvas(with_attribution=True):
-    """
-    Placeholder function to show example docstring (NumPy format).
+def canvas(with_attribution: bool = True) -> str:
+    """Return a short quote used as a template smoke-test.
 
-    Replace this function and doc string for your own project.
+    This function is intentionally simple and exists primarily to verify that
+    the package imports correctly and that the documentation build is wired up.
 
     Parameters
     ----------
-    with_attribution : bool, Optional, default: True
-        Set whether or not to display who the quote is from.
+    with_attribution
+        If ``True``, append a short attribution line.
 
     Returns
     -------
-    quote : str
-        Compiled string including quote and optional attribution.
+    str
+        The quote, optionally with attribution.
     """
 
     quote = "The code is but a canvas to our imagination."

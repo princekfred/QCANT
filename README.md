@@ -5,7 +5,37 @@ QCANT
 [![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/QCANT/branch/main/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/QCANT/branch/main)
 
 
-A set of codes useful for near term applications of quantum computing in chemistry and materials science
+Utilities for near-term applications of quantum computing in chemistry and materials science.
+
+This repository currently contains a lightweight, template-derived QCANT package. The public API is small
+and intended to grow as project modules are added.
+
+## Install
+
+For development:
+
+```bash
+pip install -e .
+```
+
+## Quickstart
+
+```python
+import QCANT
+
+print(QCANT.canvas())
+```
+
+## Documentation
+
+The documentation lives in `docs/` and is built with Sphinx:
+
+```bash
+cd docs
+make html
+```
+
+The output will be in `docs/_build/html`.
 
 ### Copyright
 

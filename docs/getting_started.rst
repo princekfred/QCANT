@@ -1,9 +1,22 @@
 Getting Started
 ===============
 
+QCANT currently ships with a small template-derived API.
 
-You might choose to write an overview tutorial or set of tutorials.
+Installation
+------------
+For development (recommended):
 
+.. code-block:: bash
+
+    pip install -e .
+
+Quickstart
+----------
 .. code-block:: python
-    
+
     import QCANT
+
+    print(QCANT.canvas())
+
+You should see a short quote printed.

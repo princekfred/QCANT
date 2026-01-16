@@ -3,11 +3,34 @@
 The docs for this project are built with [Sphinx](http://www.sphinx-doc.org/en/master/).
 To compile the docs, first ensure that the necessary dependencies are installed.
 
+## Install documentation dependencies
+
+This repository includes a conda environment specification in `docs/requirements.yaml`.
+If you use conda:
+
+```bash
+conda env create -f docs/requirements.yaml
+conda activate docs_QCANT
+```
+
+If you prefer `pip`, install Sphinx + the theme/extensions (and install QCANT itself):
+
+```bash
+pip install -e .
+pip install pydata-sphinx-theme sphinx-design sphinx-copybutton
+```
+
 
 
 Once installed, you can use the `Makefile` in this directory to compile static HTML pages by
 ```bash
 make html
+```
+
+To build with reduced output, use:
+
+```bash
+make htmlq
 ```
 
 The documentation contains default pages for "Getting Started", "User Guide", "Developer Guide" and API reference. 

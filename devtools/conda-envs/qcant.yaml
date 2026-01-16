@@ -1,0 +1,24 @@
+name: qcant
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.11,<3.13
+  - pip
+
+  # Runtime (lightweight base)
+  - numpy
+
+  # Testing
+  - pytest
+
+  # Documentation
+  - sphinx
+  - pydata-sphinx-theme
+  - sphinx-design
+  - sphinx-copybutton
+
+  # Note: Heavy/optional dependencies for ADAPT-VQE and qscEOM
+  # (pyscf, pennylane, scipy, basis_set_exchange, matplotlib, etc.)
+  # are intentionally NOT included here. Those functions will raise
+  # ImportError with instructions if called without dependencies.
