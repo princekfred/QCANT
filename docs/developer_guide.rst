@@ -5,11 +5,14 @@ This page describes basic development workflows for QCANT.
 
 Local development
 -----------------
-Create an editable install:
+QCANT has required runtime dependencies (NumPy/SciPy/PennyLane/PySCF). For the most reliable setup,
+use the conda environment file and then do an editable install without pulling deps from pip:
 
 .. code-block:: bash
 
-	pip install -e .
+	conda env create -f devtools/conda-envs/qcant.yaml
+	conda activate qcant
+	pip install -e . --no-deps
 
 Running tests
 -------------

@@ -13,7 +13,22 @@ and intended to grow as project modules are added.
 
 ## Install
 
-For development:
+QCANT requires scientific Python dependencies (installed automatically when you `pip install QCANT`):
+
+- `numpy<2`, `scipy<2`
+- `pennylane`
+- `pyscf`
+- `autoray<0.7`
+
+For development (recommended: conda env for the full stack):
+
+```bash
+conda env create -f devtools/conda-envs/qcant.yaml
+conda activate qcant
+pip install -e . --no-deps
+```
+
+For development (pip/venv):
 
 ```bash
 pip install -e .
