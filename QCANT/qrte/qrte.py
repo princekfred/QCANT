@@ -27,7 +27,8 @@ def qrte(
     device_name: Optional[str] = None,
     trotter_steps: int = 1,
     overlap_tol: float = 1e-10,
-) -> Tuple["object", "object", "object"]:
+    return_min_energy_history: bool = False,
+) -> Tuple["object", "object", "object"] | Tuple["object", "object", "object", "object"]:
     """Run a quantum real-time evolution loop and return energies from the generated basis.
 
     At each step the current state is evolved by ``delta_t`` under the molecular
@@ -67,6 +68,9 @@ def qrte(
     overlap_tol
         Threshold for discarding near-linearly dependent basis vectors when
         orthonormalizing the basis via the overlap matrix eigen-decomposition.
+    return_min_energy_history
+        If True, also return an array containing the minimum energy after each
+        iteration as the basis grows from 1 to ``n_steps + 1`` vectors.
 
     Returns
     -------
@@ -79,6 +83,11 @@ def qrte(
         - ``basis_states`` is a complex-valued array with shape ``(n_steps+1, 2**n_qubits)``
         - ``times`` is a float array with shape ``(n_steps+1,)`` giving the time associated
           with each basis vector
+
+                If ``return_min_energy_history=True``, the function returns
+                ``(energies, basis_states, times, min_energy_history)`` where
+                ``min_energy_history`` has shape ``(n_steps,)`` and contains the minimum
+                energy after each iteration (using the basis with ``k+1`` vectors).
 
     Raises
     ------
@@ -172,32 +181,42 @@ def qrte(
     psi = _hf_statevector()
     psi = psi / np.linalg.norm(psi)
 
+    H_dense = qml.matrix(H, wire_order=wires)
+
+    def _project_min_energy(current_basis_states):
+        S = current_basis_states.conj() @ current_basis_states.T
+        H_proj = current_basis_states.conj() @ (H_dense @ current_basis_states.T)
+
+        s_vals, s_vecs = np.linalg.eigh(S)
+        keep = s_vals > float(overlap_tol)
+        if not keep.any():
+            raise ValueError("overlap matrix is numerically singular; basis collapsed")
+
+        X = s_vecs[:, keep] / np.sqrt(s_vals[keep])[None, :]
+        H_ortho = X.conj().T @ H_proj @ X
+        evals = np.linalg.eigvalsh(H_ortho).real
+        return evals, float(evals[0])
+
     basis_states = [psi]
+    min_energy_history = []
+
     for _ in range(n_steps):
         psi = _evolve(psi)
         psi = psi / np.linalg.norm(psi)
         basis_states.append(psi)
 
+        if return_min_energy_history:
+            current = np.stack(basis_states, axis=0)
+            _evals, e0 = _project_min_energy(current)
+            min_energy_history.append(e0)
+
     times = np.arange(n_steps + 1, dtype=float) * float(delta_t)
 
     basis_states = np.stack(basis_states, axis=0)
 
-    # Project H into the non-orthogonal basis and diagonalize.
-    # S_ij = <psi_i|psi_j>,  H_ij = <psi_i|H|psi_j>
-    S = basis_states.conj() @ basis_states.T
+    energies, _e0 = _project_min_energy(basis_states)
 
-    H_dense = qml.matrix(H, wire_order=wires)
-    H_proj = basis_states.conj() @ (H_dense @ basis_states.T)
-
-    # Orthonormalize via overlap eigen-decomposition to avoid requiring S to be
-    # strictly positive definite (basis vectors can become nearly dependent).
-    s_vals, s_vecs = np.linalg.eigh(S)
-    keep = s_vals > float(overlap_tol)
-    if not keep.any():
-        raise ValueError("overlap matrix is numerically singular; basis collapsed")
-
-    X = s_vecs[:, keep] / np.sqrt(s_vals[keep])[None, :]
-    H_ortho = X.conj().T @ H_proj @ X
-    energies = np.linalg.eigvalsh(H_ortho).real
+    if return_min_energy_history:
+        return energies, basis_states, times, np.asarray(min_energy_history, dtype=float)
 
     return energies, basis_states, times
