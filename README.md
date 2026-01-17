@@ -1,8 +1,8 @@
 QCANT
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/QCANT/workflows/CI/badge.svg)](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/QCANT/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/QCANT/branch/main/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/QCANT/branch/main)
+[![GitHub Actions Build Status](https://github.com/srivathsanps-quantum/QCANT/workflows/CI/badge.svg)](https://github.com/srivathsanps-quantum/QCANT/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/srivathsanps-quantum/QCANT/branch/main/graph/badge.svg)](https://codecov.io/gh/srivathsanps-quantum/QCANT/branch/main)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://srivathsanps-quantum.github.io/QCANT/)
 
 
@@ -33,6 +33,29 @@ For development (pip/venv):
 ```bash
 pip install -e .
 ```
+
+For users (once QCANT is published to PyPI):
+
+```bash
+pip install QCANT
+```
+
+## Release (PyPI)
+
+This repo is configured to publish to PyPI from GitHub Actions using Trusted Publishing.
+
+1. Create the project on PyPI and enable "Trusted Publishing" for:
+	- Owner: `srivathsanps-quantum`
+	- Repo: `QCANT`
+	- Workflow: `publish-pypi.yml`
+2. Tag a release (tag must start with a digit, e.g. `1.0.0`) and push the tag:
+
+```bash
+git tag 1.0.0
+git push origin 1.0.0
+```
+
+That tag push triggers the publish workflow.
 
 ## Quickstart
 

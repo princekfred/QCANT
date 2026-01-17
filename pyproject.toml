@@ -16,7 +16,17 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 # See https://pypi.org/classifiers/
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Typing :: Typed",
 ]
 requires-python = ">=3.8"
 # Declare any run-time dependencies that should be installed with the package.
@@ -28,14 +38,21 @@ dependencies = [
     "autoray>=0.6.11,<0.7",
 ]
 
-# Update the urls once the hosting is set up.
-#[project.urls]
-#"Source" = "https://github.com/<username>/QCANT/"
-#"Documentation" = "https://QCANT.readthedocs.io/"
+
+[project.urls]
+Homepage = "https://github.com/srivathsanps-quantum/QCANT"
+Source = "https://github.com/srivathsanps-quantum/QCANT"
+Documentation = "https://srivathsanps-quantum.github.io/QCANT/"
 
 [project.optional-dependencies]
 test = [
   "pytest>=6.1.2",
+]
+docs = [
+    "sphinx",
+    "pydata-sphinx-theme",
+    "sphinx-design",
+    "sphinx-copybutton",
 ]
 
 [tool.setuptools]
