@@ -23,7 +23,7 @@ import QCANT
 # -- Project information -----------------------------------------------------
 
 project = 'QCANT'
-copyright = ("2025, SRIVATHSAN P SUNDAR. Project structure based on the "
+copyright = ("2025, Asthana Lab. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.11")
 author = 'SRIVATHSAN P SUNDAR'
 
