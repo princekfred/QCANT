@@ -50,6 +50,7 @@ def test_adapt_vqe_output_runs_qsceom_h2_sto3g_1p5a():
         ansatz=(params, ash_excitation, energies),
         basis="sto-3g",
         method="pyscf",
+        spin=0,
         shots=0,
     )
 
@@ -57,3 +58,42 @@ def test_adapt_vqe_output_runs_qsceom_h2_sto3g_1p5a():
     assert len(values) == 1
     assert np.all(np.isfinite(values[0]))
     assert values[0].size > 0
+
+    values_gs = QCANT.qsc_errorm(
+        symbols=symbols,
+        geometry=geometry,
+        active_electrons=2,
+        active_orbitals=2,
+        charge=0,
+        ansatz=(params, ash_excitation, energies),
+        basis="sto-3g",
+        method="pyscf",
+        spin=0,
+        shots=0,
+    )
+
+    assert isinstance(values_gs, list)
+    assert len(values_gs) == 1
+    assert np.all(np.isfinite(values_gs[0]))
+    assert values_gs[0].size == values[0].size + 1
+    assert np.isclose(values_gs[0].real[0], float(energies[-1]), atol=1e-7)
+    assert np.allclose(values_gs[0].real[1:], values[0].real, atol=1e-7)
+
+    values_gs_noisy = QCANT.qsc_errorm(
+        symbols=symbols,
+        geometry=geometry,
+        active_electrons=2,
+        active_orbitals=2,
+        charge=0,
+        ansatz=(params, ash_excitation, energies),
+        basis="sto-3g",
+        method="pyscf",
+        spin=0,
+        shots=0,
+        bitflip_probs=0.05,
+    )
+
+    assert isinstance(values_gs_noisy, list)
+    assert len(values_gs_noisy) == 1
+    assert np.all(np.isfinite(values_gs_noisy[0]))
+    assert values_gs_noisy[0].size == values_gs[0].size

@@ -1,23 +1,20 @@
-"""qscEOM implementation.
+"""qsc_errorm: qscEOM with the reference configuration included.
 
-This module was previously stored under ``QCANT/tests`` as an experiment/script.
-It has been promoted into the package so it can be imported and documented.
-
-Notes
------
-This code depends on optional scientific Python packages (e.g. PennyLane).
-Imports are intentionally performed inside functions so that importing QCANT
-does not require these optional dependencies.
+This routine mirrors :func:`QCANT.qscEOM` but expands the configuration pool by
+one extra entry corresponding to the identity (no-excitation) configuration.
+In practice, this adds the Hartree–Fock reference determinant to the subspace,
+making the diagonalization "qscEOM + 1" dimensional and providing access to the
+ground state.
 """
 
 from __future__ import annotations
 
 from typing import Any, Optional, Sequence, Tuple
 
-from .excitations import inite
+from ..qsceom.excitations import inite
 
 
-def qscEOM(
+def qsc_errorm(
     symbols: Sequence[str],
     geometry,
     active_electrons: int,
@@ -32,12 +29,13 @@ def qscEOM(
     spin: int = 0,
     shots: int = 0,
     device_name: Optional[str] = None,
+    bitflip_probs=None,
     max_states: Optional[int] = None,
     state_seed: Optional[int] = None,
     symmetric: bool = True,
     print_matrix: bool = False,
 ):
-    """Compute qscEOM eigenvalues from an ansatz state.
+    """Compute qscEOM-like eigenvalues including the ground-state configuration.
 
     Parameters
     ----------
@@ -55,23 +53,41 @@ def qscEOM(
         Ansatz parameters.
     ash_excitation
         Excitation list describing the ansatz.
-    shots
-        If 0, run in analytic mode; otherwise use shot-based estimation.
+    ansatz
+        Optional 3-tuple ``(params, ash_excitation, energies)`` as returned by
+        :func:`QCANT.adapt_vqe`. If provided, ``params`` and ``ash_excitation``
+        are taken from this tuple.
+    basis
+        Basis set name understood by PennyLane/PySCF (e.g. ``"sto-3g"``).
+    method
+        Backend used by PennyLane quantum chemistry tooling (default: ``"pyscf"``).
     spin
         Spin parameter used by PySCF/PennyLane as ``2S`` (e.g. 0 for singlet).
+    shots
+        If 0, run in analytic mode; otherwise use shot-based estimation.
     device_name
         Optional PennyLane device name (e.g. ``"lightning.qubit"``).
+    bitflip_probs
+        Optional bit-flip error probabilities to apply **at the end of the circuit**
+        (right before measurement) on *all* wires. Provide either:
+
+        - a single float in ``[0, 1]`` (applied to every wire), or
+        - a sequence of floats with length ``n_qubits`` (per-wire probabilities).
+
+        When enabled, the routine will use a mixed-state simulator (``default.mixed``),
+        regardless of ``device_name``.
     max_states
-        If provided, limit the number of occupation configurations used to
-        build the effective matrix.
+        If provided, limit the number of excited occupation configurations used
+        to build the effective matrix (the reference configuration is always
+        included, so the final dimension is ``max_states + 1``).
     state_seed
         Seed for selecting a random subset when ``max_states`` is used.
     symmetric
         If True, compute only the upper-triangular off-diagonal elements and
         mirror them to reduce circuit evaluations.
     print_matrix
-        If True, print the effective qscEOM matrix ``M`` (and the configuration
-        ordering) before diagonalization.
+        If True, print the effective matrix ``M`` (and configuration ordering)
+        before diagonalization.
 
     Returns
     -------
@@ -93,7 +109,7 @@ def qscEOM(
 
     if params is None or ash_excitation is None:
         raise TypeError(
-            "qscEOM requires either (params, ash_excitation) or ansatz=(params, ash_excitation, energies)."
+            "qsc_errorm requires either (params, ash_excitation) or ansatz=(params, ash_excitation, energies)."
         )
     if max_states is not None and max_states <= 0:
         raise ValueError("max_states must be > 0")
@@ -109,7 +125,7 @@ def qscEOM(
         import pennylane as qml
     except ImportError as exc:  # pragma: no cover
         raise ImportError(
-            "qscEOM requires dependencies. Install at least: "
+            "qsc_errorm requires dependencies. Install at least: "
             "`pip install numpy pennylane`."
         ) from exc
 
@@ -129,17 +145,45 @@ def qscEOM(
         active_orbitals=active_orbitals,
     )
 
-    hf_state = qml.qchem.hf_state(active_electrons, qubits)
     singles, doubles = qml.qchem.excitations(active_electrons, qubits)
     s_wires, d_wires = qml.qchem.excitations_to_wires(singles, doubles)
     wires = range(qubits)
 
+    def _normalize_bitflip_probs(raw, n_qubits: int):
+        if raw is None:
+            return None
+        if isinstance(raw, (int, float, np.floating)):
+            probs = [float(raw)] * int(n_qubits)
+        else:
+            try:
+                probs = [float(p) for p in raw]
+            except TypeError as exc:
+                raise TypeError("bitflip_probs must be a float or a sequence of floats") from exc
+            if len(probs) != int(n_qubits):
+                raise ValueError(f"bitflip_probs must have length {n_qubits}, got {len(probs)}")
+
+        for p in probs:
+            if p < 0.0 or p > 1.0:
+                raise ValueError("bitflip_probs entries must be between 0 and 1 (inclusive)")
+        if all(p == 0.0 for p in probs):
+            return None
+        return tuple(probs)
+
+    bitflip_probs_norm = _normalize_bitflip_probs(bitflip_probs, qubits)
+
     null_state = np.zeros(qubits, int)
-    list1 = inite(active_electrons, qubits)
-    if max_states is not None and max_states < len(list1):
+    excited_configs = inite(active_electrons, qubits)
+    if max_states is not None and max_states < len(excited_configs):
         rng = np.random.default_rng(state_seed)
-        indices = rng.choice(len(list1), size=max_states, replace=False)
-        list1 = [list1[idx] for idx in sorted(indices)]
+        indices = rng.choice(len(excited_configs), size=max_states, replace=False)
+        excited_configs = [excited_configs[idx] for idx in sorted(indices)]
+
+    # Include the reference (identity) configuration as the first entry.
+    # This is the Hartree–Fock determinant occupation pattern.
+    hf_occ = qml.qchem.hf_state(active_electrons, qubits)
+    reference_config = [int(i) for i, occ in enumerate(hf_occ) if int(occ) == 1]
+    configs = [reference_config] + excited_configs
+
     values = []
 
     # Preserve original behavior (single iteration) from the prior script.
@@ -148,6 +192,10 @@ def qscEOM(
             kwargs = {}
             if shots > 0:
                 kwargs["shots"] = shots
+            if bitflip_probs_norm is not None:
+                # Noise channels (e.g. BitFlip) require a mixed-state simulator.
+                # Use default.mixed regardless of the requested device.
+                return qml.device("default.mixed", wires=wires, **kwargs)
             if name is not None:
                 return qml.device(name, wires=wires, **kwargs)
             try:
@@ -174,6 +222,10 @@ def qscEOM(
                         weight=params[i],
                         wires=list(range(excitations[0], excitations[1] + 1)),
                     )
+            if bitflip_probs_norm is not None:
+                for w, p in zip(wires, bitflip_probs_norm):
+                    if p != 0.0:
+                        qml.BitFlip(p, wires=w)
             return qml.expval(H)
 
         @qml.qnode(dev)
@@ -208,21 +260,27 @@ def qscEOM(
                         weight=params[i],
                         wires=list(range(excitations[0], excitations[1] + 1)),
                     )
+            if bitflip_probs_norm is not None:
+                for w, p in zip(wires, bitflip_probs_norm):
+                    if p != 0.0:
+                        qml.BitFlip(p, wires=w)
             return qml.expval(H)
 
-        M = np.zeros((len(list1), len(list1)))
-        for i in range(len(list1)):
-            for j in range(len(list1)):
+        M = np.zeros((len(configs), len(configs)))
+        for i in range(len(configs)):
+            for j in range(len(configs)):
                 if i == j:
-                    M[i, i] = circuit_d(params, list1[i], wires, s_wires, d_wires, null_state, ash_excitation)
+                    M[i, i] = circuit_d(
+                        params, configs[i], wires, s_wires, d_wires, null_state, ash_excitation
+                    )
 
         if symmetric:
-            for i in range(len(list1)):
-                for j in range(i + 1, len(list1)):
+            for i in range(len(configs)):
+                for j in range(i + 1, len(configs)):
                     Mtmp = circuit_od(
                         params,
-                        list1[i],
-                        list1[j],
+                        configs[i],
+                        configs[j],
                         wires,
                         s_wires,
                         d_wires,
@@ -233,13 +291,13 @@ def qscEOM(
                     M[i, j] = value
                     M[j, i] = value
         else:
-            for i in range(len(list1)):
-                for j in range(len(list1)):
+            for i in range(len(configs)):
+                for j in range(len(configs)):
                     if i != j:
                         Mtmp = circuit_od(
                             params,
-                            list1[i],
-                            list1[j],
+                            configs[i],
+                            configs[j],
                             wires,
                             s_wires,
                             d_wires,
@@ -249,10 +307,10 @@ def qscEOM(
                         M[i, j] = Mtmp - M[i, i] / 2.0 - M[j, j] / 2.0
 
         if print_matrix:
-            print("qscEOM configurations (occupied indices):", flush=True)
-            for idx, occ in enumerate(list1):
+            print("qsc_errorm configurations (occupied indices):", flush=True)
+            for idx, occ in enumerate(configs):
                 print(f"  {idx}: {occ}", flush=True)
-            print("qscEOM effective matrix M:", flush=True)
+            print("qsc_errorm effective matrix M:", flush=True)
             print(np.array2string(M, precision=10, suppress_small=True), flush=True)
 
         eig, _ = np.linalg.eig(M)

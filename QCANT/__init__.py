@@ -15,6 +15,7 @@ from .qrte import qrte
 from .krylov import exact_krylov
 from .qkud import qkud
 from .qsceom import qscEOM
+from .qsc_errorm import qsc_errorm
 from ._version import __version__
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
 	"exact_krylov",
 	"qkud",
 	"qscEOM",
+	"qsc_errorm",
 	"canvas",
 	"__version__",
 ]

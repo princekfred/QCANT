@@ -135,28 +135,21 @@ def exact_krylov(
         except Exception:
             return qml.device("default.qubit", wires=wires)
 
-    try:
-        H, n_qubits = qml.qchem.molecular_hamiltonian(
-            symbols,
-            geometry,
-            basis=basis,
-            method=method,
-            active_electrons=active_electrons,
-            active_orbitals=active_orbitals,
-            charge=charge,
-            spin=spin,
-        )
-    except TypeError:
-        # Older PennyLane versions do not accept a `spin` keyword.
-        H, n_qubits = qml.qchem.molecular_hamiltonian(
-            symbols,
-            geometry,
-            basis=basis,
-            method=method,
-            active_electrons=active_electrons,
-            active_orbitals=active_orbitals,
-            charge=charge,
-        )
+    mult = int(spin) + 1
+    mol = qml.qchem.Molecule(
+        symbols,
+        geometry,
+        charge=int(charge),
+        mult=mult,
+        basis_name=basis,
+        unit="angstrom",
+    )
+    H, n_qubits = qml.qchem.molecular_hamiltonian(
+        mol,
+        method=method,
+        active_electrons=active_electrons,
+        active_orbitals=active_orbitals,
+    )
 
     wires = range(n_qubits)
 
@@ -207,7 +200,14 @@ def exact_krylov(
         except ImportError as exc:  # pragma: no cover
             raise ImportError("use_sparse=True requires scipy") from exc
         if hasattr(H, "sparse_matrix") and getattr(H, "has_sparse_matrix", True):
-            H_mat = H.sparse_matrix(wire_order=wires, format="csr")
+            try:
+                H_mat = H.sparse_matrix(wire_order=wires, format="csr")
+            except TypeError as exc:
+                if "format" not in str(exc):
+                    raise
+                H_mat = H.sparse_matrix(wire_order=wires)
+                if hasattr(H_mat, "tocsr"):
+                    H_mat = H_mat.tocsr()
         else:
             warnings.warn(
                 "Hamiltonian does not expose sparse_matrix; falling back to dense matrix.",

@@ -123,5 +123,4 @@ ENV/
 # Cookiecutter-CMS Test Artifacts
 /tests/CI_files
 
-# Local examples (do not track)
-/examples/
+# Examples are tracked in-repo; caches are ignored above.
