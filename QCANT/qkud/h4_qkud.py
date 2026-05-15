@@ -1,23 +1,23 @@
-"""Input file for H4 Chebyshev-QKUD.
+"""Input file for H4 QKUD.
 
 Run from the QCANT repo root with:
 
-    python3.9 QCANT/cqkud/h4_cqkud.py
+    python3.9 QCANT/qkud/h4_qkud.py
 
 or from this folder with:
 
-    python3.9 h4_cqkud.py
+    python3.9 h4_qkud.py
 """
 
 from pathlib import Path
 
 import numpy as np
 
-from cqkud import chebqkud
+from qkud import qkud
 
 
-OUTPUT_FILE = Path(__file__).with_name("h4_cqkud_output.txt")
-PLOT_FILE = Path(__file__).with_name("h4_cqkud_condition_numbers.png")
+OUTPUT_FILE = Path(__file__).with_name("h4_qkud_output.txt")
+PLOT_FILE = Path(__file__).with_name("h4_qkud_condition_numbers.png")
 
 
 def _condition_number_history(basis_states, tol=1e-12):
@@ -49,16 +49,9 @@ def _format_float(value):
     return f"{float(value):.12e}"
 
 
-def _format_results(
-    energies,
-    basis_states,
-    s_matrix,
-    h_k,
-    energy_history,
-    condition_history,
-):
+def _format_results(energies, basis_states, energy_history, condition_history):
     lines = [
-        "=== H4 Chebyshev-QKUD ===",
+        "=== H4 QKUD ===",
         "",
         "Ritz energies:",
         np.array2string(energies),
@@ -66,19 +59,10 @@ def _format_results(
         "Ground-state estimate:",
         f"{float(energies[0]):.12f}",
         "",
-       # "Basis shape:",
-       # str(basis_states.shape),
-        "",
-       # "Overlap matrix S:",
-       # np.array2string(s_matrix),
-        "",
-       # "Projected Hamiltonian H_K:",
-       # np.array2string(h_k),
-        "",
         "Ground-state energy convergence:",
     ]
     for step, value in enumerate(energy_history):
-        lines.append(f"basis size {step + 1}: {value:.12f}")
+        lines.append(f"basis size {step + 2}: {value:.12f}")
     lines.extend(
         [
             "",
@@ -112,7 +96,7 @@ def _write_condition_number_plot(condition_history, plot_file):
     ax.set_yscale("log")
     ax.set_xlabel("Krylov basis size")
     ax.set_ylabel("Condition number of S")
-    ax.set_title("H4 CQKUD Overlap Matrix Conditioning")
+    ax.set_title("H4 QKUD Overlap Matrix Conditioning")
     ax.grid(True, which="both", linestyle="--", linewidth=0.6, alpha=0.6)
     fig.tight_layout()
     fig.savefig(plot_file, dpi=300)
@@ -126,15 +110,16 @@ def main():
             [0.0, 0.0, 0.0],
             [0.0, 0.0, 3],
             [0.0, 0.0, 6],
-            [0.0, 0.0, 9]
+            [0.0, 0.0, 9],
         ],
         dtype=float,
     )
 
-    energies, basis_states, s_matrix, h_k, energy_history = chebqkud(
+    energies, basis_states, energy_history = qkud(
         symbols=symbols,
         geometry=geometry,
         n_steps=27,
+        epsilon=0.10,
         active_electrons=4,
         active_orbitals=4,
         basis="sto-3g",
@@ -143,26 +128,19 @@ def main():
         method="pyscf",
         use_sparse=False,
         overlap_tol=1e-10,
-        return_matrices=True,
+        normalize_basis=True,
         return_min_energy_history=True,
     )
 
     np.set_printoptions(precision=12, suppress=True)
     condition_history = _condition_number_history(basis_states)
     OUTPUT_FILE.write_text(
-        _format_results(
-            energies,
-            basis_states,
-            s_matrix,
-            h_k,
-            energy_history,
-            condition_history,
-        ),
+        _format_results(energies, basis_states, energy_history, condition_history),
         encoding="utf-8",
     )
     _write_condition_number_plot(condition_history, PLOT_FILE)
-    print(f"Wrote H4 CQKUD output to: {OUTPUT_FILE}")
-    print(f"Wrote H4 CQKUD condition-number plot to: {PLOT_FILE}")
+    print(f"Wrote H4 QKUD output to: {OUTPUT_FILE}")
+    print(f"Wrote H4 QKUD condition-number plot to: {PLOT_FILE}")
 
 
 if __name__ == "__main__":
